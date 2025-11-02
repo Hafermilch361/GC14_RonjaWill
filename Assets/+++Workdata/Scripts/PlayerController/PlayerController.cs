@@ -7,7 +7,7 @@ public class PlayerController : MonoBehaviour
     #region Insepctor Variables
 
     [SerializeField]
-    private float walkingSpeed;
+    private float walkingSpeed = 5f;
 
     #endregion
 
@@ -22,6 +22,8 @@ public class PlayerController : MonoBehaviour
     private InputAction _sprintAction;
 
     public Vector2 _moveInput;
+    private Rigidbody2D rb;
+    private float movementSpeed = 5f;
     
     #endregion
     
@@ -36,12 +38,21 @@ public class PlayerController : MonoBehaviour
         _interactAction = _inputActions.Player.Interact;
         _crouchAction = _inputActions.Player.Crouch;
         _sprintAction = _inputActions.Player.Sprint;
+
+        rb = GetComponent<Rigidbody2D>();
     }
     private void OnEnable()
     {
         _inputActions.Enable();
         _moveAction.performed += Move;
         _moveAction.canceled += Move;
+    }
+
+    private void FixedUpdate()
+    {
+        rb.velocity = new Vector2(_moveInput.x * movementSpeed, rb.velocity.y
+        );
+        
     }
 
     private void OnDisable()
@@ -51,7 +62,7 @@ public class PlayerController : MonoBehaviour
         _moveAction.canceled -= Move;
     }
     #endregion
-    #region Input
+    #region Input Methods
 
     private void Move(InputAction.CallbackContext ctx)
     {

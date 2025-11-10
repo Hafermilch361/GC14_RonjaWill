@@ -13,7 +13,7 @@ public class PlayerController : MonoBehaviour
     [Header("Movement")]
     [SerializeField] private float walkingSpeed = 6f;
     [SerializeField] private float runSpeed = 8f;
-    [SerializeField] private float jumpPower = 5f;
+    [SerializeField] private float jumpPower = 4f;
     
     [Header("GroundCheck")]
     [SerializeField] private Vector2 boxSize;
@@ -23,7 +23,7 @@ public class PlayerController : MonoBehaviour
 
     [SerializeField] public bool IsGrounded;
 
-    private SpriteRenderer _sr;
+    private SpriteRenderer _sr; //Zugriff zum Sprite Renderer im Inspector
 
     #endregion
 
@@ -37,14 +37,15 @@ public class PlayerController : MonoBehaviour
     
     private float _movementSpeed;
     
-    private bool isGrounded;
+    private bool isGrounded; //Abfrage ob der Player den Boden berührt
     private bool isJumping;
     private bool canJump;
+    private bool isFacingRight = true; //angeben wohin unser Player "normal" schaut
     
     #region Input Variables
     private InputSystem_Actions _inputActions;
-    private InputAction _moveAction;
-    private InputAction _jumpAction;
+    private InputAction _moveAction; //zum bewegen (WASD)
+    private InputAction _jumpAction; //zum springen (Space)
     #endregion
     
     #endregion
@@ -127,13 +128,15 @@ public class PlayerController : MonoBehaviour
     {
         _moveInput = ctx.ReadValue<Vector2>();
 
-        if (_moveInput.x > 0)
+        if (_moveInput.x > 0) //wenn Input größer 0 (D) -> nicht flipX nutzen (dreht nur die Sprite)!!!
         {
-            _sr.flipX = false;
+            transform.rotation = Quaternion.Euler(0,0,0); //Spieler soll sich rotieren, vorher isfacingRight definieren
+            isFacingRight = true;
         }
-        else if (_moveInput.x < 0)
+        else if (_moveInput.x < 0) //wenn Input kleiner 0 (A)
         {
-            _sr.flipX = true;
+            transform.rotation = Quaternion.Euler(0, 180, 0); //durch Rotation ganzer Player rotiert und nicht nur die Sprite
+            isFacingRight = false;
         }
     }
 

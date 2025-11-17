@@ -1,4 +1,5 @@
 using System;
+using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -10,10 +11,12 @@ public class PlayerController : MonoBehaviour
     #region Inspector
     //darauf möchte ich im INSPECTOR-Fenster in Unity zugreifen//
    
-    [Header("Movement")]
+   
     [SerializeField] private float walkingSpeed = 6f;
     [SerializeField] private float runSpeed = 8f;
     [SerializeField] private float jumpPower = 4f;
+    
+    
     
     [Header("GroundCheck")]
     [SerializeField] private Vector2 boxSize;
@@ -41,11 +44,13 @@ public class PlayerController : MonoBehaviour
     private bool isJumping;
     private bool canJump;
     private bool isFacingRight = true; //angeben wohin unser Player "normal" schaut
+    private bool MouseClicked;
     
     #region Input Variables
     private InputSystem_Actions _inputActions;
     private InputAction _moveAction; //zum bewegen (WASD)
     private InputAction _jumpAction; //zum springen (Space)
+    private InputAction _attackAction; //zum angreifen (Mouseclick)
     #endregion
     
     #endregion
@@ -64,6 +69,7 @@ public class PlayerController : MonoBehaviour
         _inputActions = new InputSystem_Actions();
         _moveAction = _inputActions.Player.Move;
         _jumpAction = _inputActions.Player.Jump;
+        _attackAction = _inputActions.Player.Attack;
     }
 
     private void OnEnable()
@@ -74,7 +80,9 @@ public class PlayerController : MonoBehaviour
         _moveAction.canceled += Move;
         
         _jumpAction.performed += Jump;
-        
+
+        _attackAction.performed += Attack;
+
     }
 
     private void FixedUpdate()
@@ -83,7 +91,7 @@ public class PlayerController : MonoBehaviour
         
         _rb.linearVelocityX = _moveInput.x * walkingSpeed;
         
-        UpdateAnimator();
+        UpdateAnimator(); //in Animations definiert, hier, damit es jeden Frame aufgerufen wird
     }
 
     private void OnDisable()
@@ -94,6 +102,8 @@ public class PlayerController : MonoBehaviour
         _moveAction.canceled -= Move;
         
         _jumpAction.performed -= Jump;
+
+        _attackAction.performed -= Attack;
     }
 
     #endregion
@@ -114,10 +124,11 @@ public class PlayerController : MonoBehaviour
     
     #region Animation Methods
 
-    void UpdateAnimator()
+    void UpdateAnimator() //für Übersichtlichkeit steht es hier und nicht direkt im FixedUpdate
     {
-        anim.SetFloat(Hash_MovementValue,Mathf.Abs(_rb.linearVelocity.x));
-        anim.SetBool(Hash_GroundValue, IsGrounded);
+        anim.SetFloat(Hash_MovementValue,Mathf.Abs(_rb.linearVelocity.x)); //oder: anim.SetFloat("MovementValue", _rb.linearVelocityX)
+        anim.SetBool(Hash_GroundValue, IsGrounded); //Mathf.Abs= dass passiert, egal welche Richtung (sonst nur nach rechts)
+        
     }
     
     
@@ -130,7 +141,7 @@ public class PlayerController : MonoBehaviour
 
         if (_moveInput.x > 0) //wenn Input größer 0 (D) -> nicht flipX nutzen (dreht nur die Sprite)!!!
         {
-            transform.rotation = Quaternion.Euler(0,0,0); //Spieler soll sich rotieren, vorher isfacingRight definieren
+            transform.rotation = Quaternion.Euler(0,0,0); //Spieler soll sich rotieren, vorher isFacingRight definieren
             isFacingRight = true;
         }
         else if (_moveInput.x < 0) //wenn Input kleiner 0 (A)
@@ -147,6 +158,14 @@ public class PlayerController : MonoBehaviour
             canJump = false;
             _rb.AddForce(Vector2.up * jumpPower, ForceMode2D.Impulse);
         }
+        
+        
+    }
+
+    private void Attack(InputAction.CallbackContext ctx)
+    {
+        anim.SetInteger("Actionid", 11);
+        anim.SetTrigger("ActionTrigger");
     }
     #endregion
 

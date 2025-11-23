@@ -7,19 +7,23 @@ public class PlayerController : MonoBehaviour
 {
     public static readonly int Hash_MovementValue = Animator.StringToHash("MovementValue");
     public static readonly int Hash_GroundValue = Animator.StringToHash("isGrounded");
-    
+    private static readonly int Hash_JumpValue = Animator.StringToHash("JumpValue");
+    private static readonly int Hash_Actionid = Animator.StringToHash("ActionId");
+    private static readonly int Hash_ActionTrigger = Animator.StringToHash("ActionTrigger");
+    private static readonly int Hash_HoldingMouse = Animator.StringToHash("HoldingMouse");
+
     #region Inspector
+
     //darauf möchte ich im INSPECTOR-Fenster in Unity zugreifen//
-   
-   
+
+
     [SerializeField] private float walkingSpeed = 6f;
     [SerializeField] private float runSpeed = 8f;
     [SerializeField] private float jumpPower = 4f;
-    
-    
-    
-    [Header("GroundCheck")]
-    [SerializeField] private Vector2 boxSize;
+
+    [Header("GroundCheck")] [SerializeField]
+    private Vector2 boxSize;
+
     [SerializeField] private Vector2 boxOffset;
     [SerializeField] private LayerMask groundLayer;
 
@@ -30,46 +34,53 @@ public class PlayerController : MonoBehaviour
 
     #endregion
 
-    
+
     #region Private Variables
+
 //meine Inputs und "Abkürzungen" für spätere Verwendung//
 
     public Vector2 _moveInput;
     private Rigidbody2D _rb;
     private Animator anim;
-    
+
     private float _movementSpeed;
-    
+
     private bool isGrounded; //Abfrage ob der Player den Boden berührt
     private bool isJumping;
     private bool canJump;
     private bool isFacingRight = true; //angeben wohin unser Player "normal" schaut
     private bool MouseClicked;
-    
+    private bool _isHoldingMouse;
+
     #region Input Variables
+
     private InputSystem_Actions _inputActions;
     private InputAction _moveAction; //zum bewegen (WASD)
     private InputAction _jumpAction; //zum springen (Space)
     private InputAction _attackAction; //zum angreifen (Mouseclick)
-    #endregion
-    
+    private InputAction _secondAttackAction; //zum double attack
+
     #endregion
 
-    
+    #endregion
+
+
     #region Unity Event Functions
+
     private void Awake()
     {
         _rb = gameObject.GetComponent<Rigidbody2D>();
         _sr = GetComponent<SpriteRenderer>();
         anim = GetComponent<Animator>();
-        
+
         _movementSpeed = walkingSpeed;
         canJump = true;
-        
+
         _inputActions = new InputSystem_Actions();
         _moveAction = _inputActions.Player.Move;
         _jumpAction = _inputActions.Player.Jump;
         _attackAction = _inputActions.Player.Attack;
+        _secondAttackAction = _inputActions.Player.SecondAttack;
     }
 
     private void OnEnable()
@@ -78,19 +89,20 @@ public class PlayerController : MonoBehaviour
 
         _moveAction.performed += Move;
         _moveAction.canceled += Move;
-        
+
         _jumpAction.performed += Jump;
 
         _attackAction.performed += Attack;
+        _attackAction.canceled += AttackReleased;
+        _secondAttackAction.started += SecondAttack;
 
     }
 
     private void FixedUpdate()
     {
         CheckGround();
-        
         _rb.linearVelocityX = _moveInput.x * walkingSpeed;
-        
+
         UpdateAnimator(); //in Animations definiert, hier, damit es jeden Frame aufgerufen wird
     }
 
@@ -100,10 +112,12 @@ public class PlayerController : MonoBehaviour
 
         _moveAction.performed -= Move;
         _moveAction.canceled -= Move;
-        
+
         _jumpAction.performed -= Jump;
 
         _attackAction.performed -= Attack;
+        _attackAction.canceled += AttackReleased;
+        _secondAttackAction.canceled -= SecondAttack;
     }
 
     #endregion
@@ -121,18 +135,29 @@ public class PlayerController : MonoBehaviour
     }
 
     #endregion
-    
+
     #region Animation Methods
+
+    private void AnimationSetActionId(int id)
+    {
+
+        anim.SetInteger(Hash_Actionid, id);
+        anim.SetTrigger(Hash_ActionTrigger);
+        anim.SetBool(Hash_HoldingMouse, true);
+    }
 
     void UpdateAnimator() //für Übersichtlichkeit steht es hier und nicht direkt im FixedUpdate
     {
-        anim.SetFloat(Hash_MovementValue,Mathf.Abs(_rb.linearVelocity.x)); //oder: anim.SetFloat("MovementValue", _rb.linearVelocityX)
-        anim.SetBool(Hash_GroundValue, IsGrounded); //Mathf.Abs= dass passiert, egal welche Richtung (sonst nur nach rechts)
-        
+        anim.SetFloat(Hash_MovementValue,
+            Mathf.Abs(_rb.linearVelocity.x)); //oder: anim.SetFloat("MovementValue", _rb.linearVelocityX)
+        anim.SetBool(Hash_GroundValue,
+            IsGrounded); //Mathf.Abs= dass passiert, egal welche Richtung (sonst nur nach rechts)
+
     }
-    
-    
+
+
     #endregion
+
     #region Input
 
     private void Move(InputAction.CallbackContext ctx)
@@ -141,12 +166,14 @@ public class PlayerController : MonoBehaviour
 
         if (_moveInput.x > 0) //wenn Input größer 0 (D) -> nicht flipX nutzen (dreht nur die Sprite)!!!
         {
-            transform.rotation = Quaternion.Euler(0,0,0); //Spieler soll sich rotieren, vorher isFacingRight definieren
+            transform.rotation =
+                Quaternion.Euler(0, 0, 0); //Spieler soll sich rotieren, vorher isFacingRight definieren
             isFacingRight = true;
         }
         else if (_moveInput.x < 0) //wenn Input kleiner 0 (A)
         {
-            transform.rotation = Quaternion.Euler(0, 180, 0); //durch Rotation ganzer Player rotiert und nicht nur die Sprite
+            transform.rotation =
+                Quaternion.Euler(0, 180, 0); //durch Rotation ganzer Player rotiert und nicht nur die Sprite
             isFacingRight = false;
         }
     }
@@ -158,27 +185,39 @@ public class PlayerController : MonoBehaviour
             canJump = false;
             _rb.AddForce(Vector2.up * jumpPower, ForceMode2D.Impulse);
         }
-        
-        
+
     }
 
     private void Attack(InputAction.CallbackContext ctx)
     {
         anim.SetInteger("Actionid", 11);
         anim.SetTrigger("ActionTrigger");
+        anim.SetBool("HoldingMouse", true);
     }
-    #endregion
-
-    #region Gizmos
-
-    void OnDrawGizmos()
-    {
-        Gizmos.color = isGrounded ? Color.green : Color.red;
-        
-        Gizmos.DrawWireCube(boxOffset+(Vector2)transform.position,boxSize);
-    }
-
-    #endregion
     
-}
 
+    private void AttackReleased(InputAction.CallbackContext ctx)
+    {
+        anim.SetBool("HoldingMouse", false);
+    }
+
+    private void SecondAttack(InputAction.CallbackContext ctx)
+    {
+        Debug.Log("Mouse clicked");
+        anim.SetTrigger("ActionTrigger");
+        anim.SetInteger("Actionid", 12);
+    }
+
+    #endregion
+
+        #region Gizmos
+
+        void OnDrawGizmos()
+        {
+            Gizmos.color = isGrounded ? Color.green : Color.red;
+            Gizmos.DrawWireCube(boxOffset + (Vector2)transform.position, boxSize);
+        }
+
+        #endregion
+
+    }

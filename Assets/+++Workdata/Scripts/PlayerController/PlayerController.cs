@@ -12,6 +12,14 @@ public class PlayerController : MonoBehaviour
     private static readonly int Hash_ActionTrigger = Animator.StringToHash("ActionTrigger");
     private static readonly int Hash_HoldingMouse = Animator.StringToHash("HoldingMouse");
 
+    public enum PlayerMovementState { Idle, Move } 
+    public enum PlayerActionState {Default, Attack, Attack2, Interact, Roll, Jump, Climb, Dash}
+    public enum PlayerDirection {Left, Right}
+
+    public PlayerMovementState playerMovementState;
+    public PlayerActionState playerActionState;
+    public PlayerDirection playerDirection;
+    
     #region Inspector
 
     //darauf möchte ich im INSPECTOR-Fenster in Unity zugreifen//
@@ -76,12 +84,21 @@ public class PlayerController : MonoBehaviour
         _movementSpeed = walkingSpeed;
         canJump = true;
 
-        _inputActions = new InputSystem_Actions();
-        _moveAction = _inputActions.Player.Move;
-        _jumpAction = _inputActions.Player.Jump;
-        _attackAction = _inputActions.Player.Attack;
-        _secondAttackAction = _inputActions.Player.SecondAttack;
+        SetInputActionsInput();
+        SetDirection(playerDirection);
+
+        playerActionState = PlayerActionState.Default;
+
+        if (playerDirection == PlayerDirection.Right)
+        {
+            transform.rotation = Quaternion.Euler(0, 0, 0);
+        }
+        else if (playerDirection == PlayerDirection.Left)
+        {
+            transform.rotation = Quaternion.Euler(0, 180, 0);
+        }
     }
+    
 
     private void OnEnable()
     {
@@ -140,10 +157,8 @@ public class PlayerController : MonoBehaviour
 
     private void AnimationSetActionId(int id)
     {
-
-        anim.SetInteger(Hash_Actionid, id);
-        anim.SetTrigger(Hash_ActionTrigger);
-        anim.SetBool(Hash_HoldingMouse, true);
+        anim.SetTrigger("ActionTrigger");
+        anim.SetInteger("Actionid", id);
     }
 
     void UpdateAnimator() //für Übersichtlichkeit steht es hier und nicht direkt im FixedUpdate
@@ -165,17 +180,16 @@ public class PlayerController : MonoBehaviour
         _moveInput = ctx.ReadValue<Vector2>();
 
         if (_moveInput.x > 0) //wenn Input größer 0 (D) -> nicht flipX nutzen (dreht nur die Sprite)!!!
-        {
-            transform.rotation =
-                Quaternion.Euler(0, 0, 0); //Spieler soll sich rotieren, vorher isFacingRight definieren
-            isFacingRight = true;
-        }
+        { SetDirection(PlayerDirection.Right); }
+        
         else if (_moveInput.x < 0) //wenn Input kleiner 0 (A)
-        {
-            transform.rotation =
-                Quaternion.Euler(0, 180, 0); //durch Rotation ganzer Player rotiert und nicht nur die Sprite
-            isFacingRight = false;
-        }
+        { SetDirection(PlayerDirection.Left); }
+
+        if (_moveInput.x == 0)
+        { playerMovementState = PlayerMovementState.Idle; }
+        else
+        { playerMovementState = PlayerMovementState.Move; }
+
     }
 
     private void Jump(InputAction.CallbackContext ctx)
@@ -190,9 +204,13 @@ public class PlayerController : MonoBehaviour
 
     private void Attack(InputAction.CallbackContext ctx)
     {
-        anim.SetInteger("Actionid", 11);
-        anim.SetTrigger("ActionTrigger");
-        anim.SetBool("HoldingMouse", true);
+        if (playerActionState == PlayerActionState.Attack) return;
+        
+            playerActionState = PlayerActionState.Attack;
+            AnimationSetActionId(11);
+            _isHoldingMouse = true;
+            anim.SetBool("HoldingMouse", true);
+
     }
     
 
@@ -203,9 +221,16 @@ public class PlayerController : MonoBehaviour
 
     private void SecondAttack(InputAction.CallbackContext ctx)
     {
-        Debug.Log("Mouse clicked");
-        anim.SetTrigger("ActionTrigger");
-        anim.SetInteger("Actionid", 12);
+        if (playerActionState == PlayerActionState.Attack2) return;
+        
+            playerActionState = PlayerActionState.Attack2;
+            AnimationSetActionId(12);
+        
+    }
+
+    private void SetStateToDefault()
+    {
+        playerActionState = PlayerActionState.Default;
     }
 
     #endregion
@@ -220,4 +245,30 @@ public class PlayerController : MonoBehaviour
 
         #endregion
 
+        #region Utility
+
+        private void SetInputActionsInput()
+        {
+            _inputActions = new InputSystem_Actions();
+            _moveAction = _inputActions.Player.Move;
+            _jumpAction = _inputActions.Player.Jump;
+            _attackAction = _inputActions.Player.Attack;
+            _secondAttackAction = _inputActions.Player.SecondAttack;
+        }
+        private void SetDirection(PlayerDirection newPlayerDirectionState)
+        {
+            playerDirection = newPlayerDirectionState;
+        
+            if (playerDirection == PlayerDirection.Left)
+            {
+                transform.rotation = Quaternion.Euler(0, 180, 0); //durch Rotation ganzer Player rotiert und nicht nur die Sprite
+            }
+            else
+            {
+                transform.rotation = Quaternion.Euler(0, 0, 0); //Spieler soll sich rotieren, vorher isFacingRight definieren
+            }
+        }
+
+
+        #endregion
     }

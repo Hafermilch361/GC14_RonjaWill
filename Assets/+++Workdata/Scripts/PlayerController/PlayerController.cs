@@ -1,4 +1,6 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -19,6 +21,8 @@ public class PlayerController : MonoBehaviour
     public PlayerMovementState playerMovementState;
     public PlayerActionState playerActionState;
     public PlayerDirection playerDirection;
+
+    public Transform attackArea;
     
     #region Inspector
 
@@ -50,7 +54,10 @@ public class PlayerController : MonoBehaviour
     public Vector2 _moveInput;
     private Rigidbody2D _rb;
     private Animator anim;
-
+    public LayerMask enemies;
+    public float radius;
+    public float damage;
+    
     private float _movementSpeed;
 
     private bool isGrounded; //Abfrage ob der Player den Boden berührt
@@ -122,7 +129,7 @@ public class PlayerController : MonoBehaviour
 
         UpdateAnimator(); //in Animations definiert, hier, damit es jeden Frame aufgerufen wird
     }
-
+    
     private void OnDisable()
     {
         _inputActions.Disable();
@@ -210,7 +217,8 @@ public class PlayerController : MonoBehaviour
             AnimationSetActionId(11);
             _isHoldingMouse = true;
             anim.SetBool("HoldingMouse", true);
-
+            DealDamage();
+            
     }
     
 
@@ -227,6 +235,17 @@ public class PlayerController : MonoBehaviour
             AnimationSetActionId(12);
         
     }
+    
+    private void DealDamage()
+    {
+        Collider2D[] enemy = Physics2D.OverlapCircleAll(attackArea.transform.position,radius, enemies);
+        foreach (Collider2D enemyGameobject in enemy)
+        {
+            Debug.Log("Hit enemy");
+            enemyGameobject.GetComponent<EnemyHealth>().health -= damage;
+        }
+    }
+
 
     private void SetStateToDefault()
     {
@@ -235,12 +254,14 @@ public class PlayerController : MonoBehaviour
 
     #endregion
 
-        #region Gizmos
+    #region Gizmos
 
         void OnDrawGizmos()
         {
             Gizmos.color = isGrounded ? Color.green : Color.red;
             Gizmos.DrawWireCube(boxOffset + (Vector2)transform.position, boxSize);
+            
+            Gizmos.DrawWireSphere(attackArea.transform.position, radius);
         }
 
         #endregion

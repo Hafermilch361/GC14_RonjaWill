@@ -58,6 +58,10 @@ public class PlayerController : MonoBehaviour
     public float radius;
     public float damage;
     
+    public OneWayChecker _oneway;
+
+    
+    
     private float _movementSpeed;
 
     private bool isGrounded; //Abfrage ob der Player den Boden berührt
@@ -87,6 +91,8 @@ public class PlayerController : MonoBehaviour
         _rb = gameObject.GetComponent<Rigidbody2D>();
         _sr = GetComponent<SpriteRenderer>();
         anim = GetComponent<Animator>();
+
+        _oneway = GetComponentInChildren<OneWayChecker>();
 
         _movementSpeed = walkingSpeed;
         canJump = true;
@@ -196,6 +202,11 @@ public class PlayerController : MonoBehaviour
         { playerMovementState = PlayerMovementState.Idle; }
         else
         { playerMovementState = PlayerMovementState.Move; }
+
+        if (_moveInput.y < 0)
+        {
+            _oneway.DisableOneWayCollider();
+        }
 
     }
 

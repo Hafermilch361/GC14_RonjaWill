@@ -32,6 +32,8 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float walkingSpeed = 6f;
     [SerializeField] private float runSpeed = 8f;
     [SerializeField] private float jumpPower = 4f;
+    private float _dashforce = 5f;
+    public float _dashSpeed;
 
     [Header("GroundCheck")] [SerializeField]
     private Vector2 boxSize;
@@ -67,6 +69,10 @@ public class PlayerController : MonoBehaviour
     private bool isGrounded; //Abfrage ob der Player den Boden berührt
     private bool isJumping;
     private bool canJump;
+    
+    private bool canDash;
+    private bool isDashing;
+    
     private bool isFacingRight = true; //angeben wohin unser Player "normal" schaut
     private bool MouseClicked;
     private bool _isHoldingMouse;
@@ -78,6 +84,7 @@ public class PlayerController : MonoBehaviour
     private InputAction _jumpAction; //zum springen (Space)
     private InputAction _attackAction; //zum angreifen (Mouseclick)
     private InputAction _secondAttackAction; //zum double attack
+    private InputAction _dashAction; //dashen
 
     #endregion
 
@@ -125,12 +132,15 @@ public class PlayerController : MonoBehaviour
         _attackAction.performed += Attack;
         _attackAction.canceled += AttackReleased;
         _secondAttackAction.started += SecondAttack;
+        
+        _dashAction.performed += Dash;
 
     }
 
     private void FixedUpdate()
     {
         CheckGround();
+        if(playerActionState != PlayerActionState.Dash)
         _rb.linearVelocityX = _moveInput.x * walkingSpeed;
 
         UpdateAnimator(); //in Animations definiert, hier, damit es jeden Frame aufgerufen wird
@@ -148,6 +158,8 @@ public class PlayerController : MonoBehaviour
         _attackAction.performed -= Attack;
         _attackAction.canceled += AttackReleased;
         _secondAttackAction.canceled -= SecondAttack;
+        
+        _dashAction.performed -= Dash;
     }
 
     #endregion
@@ -182,8 +194,23 @@ public class PlayerController : MonoBehaviour
             IsGrounded); //Mathf.Abs= dass passiert, egal welche Richtung (sonst nur nach rechts)
 
     }
+private void AnimEvent_EndJump()
+    {
+        
+        canJump = true;
+    }
 
-
+    private void AnimEvent_EndDash()
+    {
+     print("Player has dashed");
+        isDashing =  false;
+        canDash = true;
+        SetActionToDefault();
+    }
+private void SetActionToDefault()
+    {
+        playerActionState = PlayerActionState.Default;
+    }
     #endregion
 
     #region Input
@@ -246,6 +273,21 @@ public class PlayerController : MonoBehaviour
             AnimationSetActionId(12);
         
     }
+
+    private void Dash(InputAction.CallbackContext ctx)
+    {
+        
+        if (isGrounded && canDash)
+            
+        {
+            canDash = false;
+            isDashing = true;
+            
+            _rb.AddForce((isFacingRight ? Vector2.right : Vector2.left) * _dashforce, ForceMode2D.Impulse);
+            playerActionState = PlayerActionState.Dash;
+            AnimationSetActionId(3);
+        }
+    }
     
     private void DealDamage()
     {
@@ -286,6 +328,7 @@ public class PlayerController : MonoBehaviour
             _jumpAction = _inputActions.Player.Jump;
             _attackAction = _inputActions.Player.Attack;
             _secondAttackAction = _inputActions.Player.SecondAttack;
+            _dashAction = _inputActions.Player.Dash;
         }
         private void SetDirection(PlayerDirection newPlayerDirectionState)
         {

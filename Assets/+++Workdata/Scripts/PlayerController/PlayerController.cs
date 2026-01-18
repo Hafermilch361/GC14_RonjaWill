@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -21,6 +22,7 @@ public class PlayerController : MonoBehaviour
     public PlayerMovementState playerMovementState;
     public PlayerActionState playerActionState;
     public PlayerDirection playerDirection;
+    public PlayerHealth playerHealth;
 
     public Transform attackArea;
     
@@ -55,12 +57,15 @@ public class PlayerController : MonoBehaviour
 
     public Vector2 _moveInput;
     private Rigidbody2D _rb;
+    private PlayerPlatformHandler _playerPlatformHandler;
+    
     private Animator anim;
     public LayerMask enemies;
     public float radius;
     public float damage;
+    public float bounceForce;
     
-    public OneWayChecker _oneway;
+    // public OneWayChecker _oneway;
 
     
     
@@ -98,8 +103,9 @@ public class PlayerController : MonoBehaviour
         _rb = gameObject.GetComponent<Rigidbody2D>();
         _sr = GetComponent<SpriteRenderer>();
         anim = GetComponent<Animator>();
+        _playerPlatformHandler = GetComponent<PlayerPlatformHandler>();
 
-        _oneway = GetComponentInChildren<OneWayChecker>();
+    //    _oneway = GetComponentInChildren<OneWayChecker>();
 
         _movementSpeed = walkingSpeed;
         canJump = true;
@@ -232,7 +238,7 @@ private void SetActionToDefault()
 
         if (_moveInput.y < 0)
         {
-            _oneway.DisableOneWayCollider();
+            _playerPlatformHandler.TryDisableOneWayEffector();
         }
 
     }
@@ -303,6 +309,14 @@ private void SetActionToDefault()
     private void SetStateToDefault()
     {
         playerActionState = PlayerActionState.Default;
+    }
+
+    private void OnCollisionEnter2D(Collision2D other)
+    {
+        if (other.gameObject.CompareTag("Damage"))
+        {
+            _rb.AddForce(Vector2.up * bounceForce, ForceMode2D.Impulse);
+        }
     }
 
     #endregion

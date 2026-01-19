@@ -11,6 +11,7 @@ public class PlayerHealth : MonoBehaviour
     void Start()
     {
         maxHealth = health;
+        Time.timeScale = 1;
     }
 
     void Update()

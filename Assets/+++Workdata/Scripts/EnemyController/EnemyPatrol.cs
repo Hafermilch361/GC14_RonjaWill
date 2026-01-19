@@ -1,28 +1,70 @@
+using System;
 using UnityEngine;
+using System.Collections;
+using System.Collections.Generic;
 
 public class EnemyPatrol : MonoBehaviour
 {
-    public class EnemyPatrol : MonoBehaviour
+    #region Variables
+    
+    public Transform pointA;
+    public Transform pointB;
+    private Rigidbody2D _rb;
+    private Animator _anim;
+    private Transform currentPoint;
+    public float speed;
+    public float damage;
+
+    #endregion
+    #region Methods
+    private void Start()
     {
-        public Transform pointA;
-        public Transform pointB;
-        public float speed = 2f;
+        _rb= GetComponent<Rigidbody2D>();
+        _anim = GetComponent<Animator>();
+        currentPoint = pointB;
+        _anim.SetBool("isWalking", true);
+        
+    }
+    void FixedUpdate()
+    {
+        
+    }
 
-        private Vector3 target;
+    void Update()
+    {
+        if (currentPoint == pointB)
+                    _rb.linearVelocity = new Vector2(speed, 0);
+                else
+                    _rb.linearVelocity = new Vector2(-speed, 0);
+        
+                // Prüfen, ob Enemy den Punkt erreicht hat
+                if (Vector2.Distance(transform.position, currentPoint.position) < 0.5f && currentPoint == pointB.transform)
+                {
+                    flip();
+                    currentPoint = pointA.transform;
+                }
+        
+                if (Vector2.Distance(transform.position, currentPoint.position) < 0.5f && currentPoint == pointA.transform)
+                {
+                    flip();
+                    currentPoint = pointB.transform;
+                }
+    }
 
-        void Start()
+    private void flip()
+    {
+        Vector3 scale = transform.localScale;
+        scale.x *= -1;
+        transform.localScale = scale;
+    }
+
+    private void OnCollisionEnter2D(Collision2D other)
+    {
+        if (other.gameObject.CompareTag("Player"))
         {
-            target = pointB.position;
-        }
-
-        void Update()
-        {
-            transform.position = Vector3.MoveTowards(transform.position, target, speed * Time.deltaTime);
-
-            if (Vector3.Distance(transform.position, target) < 0.1f)
-            {
-                target = (target == pointA.position) ? pointB.position : pointA.position;
-            }
+            other.gameObject.GetComponent<PlayerHealth>().health -= damage;
         }
     }
+
+    #endregion
 }

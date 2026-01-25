@@ -11,9 +11,12 @@ public class MainMenu_UiManager : MonoBehaviour
 
     public GameObject _currentMenu;
     public bool mute;
+    
     public AudioSource clickSound;
     public AudioSource startSound;
     public AudioSource backgroundMusic;
+    public AudioSource alternativeMusic;
+    private AudioSource current;
 
     private void Awake()
     {
@@ -22,6 +25,19 @@ public class MainMenu_UiManager : MonoBehaviour
         clickSound.mute = mute;
         startSound.mute = mute;
         backgroundMusic.mute = mute;
+        current = backgroundMusic;
+    }
+
+    private void Start()
+    {
+        backgroundMusic.Play();
+        backgroundMusic.Pause();
+        
+        alternativeMusic.Play();
+        alternativeMusic.Pause();
+
+        backgroundMusic.UnPause();  
+        current = backgroundMusic;
     }
 
     public void OpenLoadMenu()
@@ -65,5 +81,22 @@ public class MainMenu_UiManager : MonoBehaviour
     {
         mute = !mute;
         backgroundMusic.mute = mute;
+        alternativeMusic.mute = mute;
+    }
+
+    public void SwitchMusic()
+    {
+        if (current == backgroundMusic)
+        {
+            backgroundMusic.Pause();
+            alternativeMusic.UnPause();
+            current = alternativeMusic;
+        }
+        else
+        {
+            alternativeMusic.Pause();
+            backgroundMusic.UnPause();
+            current = backgroundMusic;
+        }
     }
 }

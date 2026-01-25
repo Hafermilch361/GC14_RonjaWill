@@ -6,6 +6,7 @@ public class GameOverScreen : MonoBehaviour
     public GameObject gameOverContainer;
     private bool _isPaused;
     public GameObject player;
+    public AudioSource gameMusic;
 
     private void Update()
     {
@@ -22,6 +23,7 @@ public class GameOverScreen : MonoBehaviour
         Time.timeScale = _isPaused ? 0 : 0;
         Cursor.visible = true;
         Cursor.lockState = CursorLockMode.None;
+        gameMusic.Pause();
     }
 
     public void RestartScene(int index)

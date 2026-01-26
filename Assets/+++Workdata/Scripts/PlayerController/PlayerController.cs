@@ -7,12 +7,9 @@ using UnityEngine.InputSystem;
 
 public class PlayerController : MonoBehaviour
 {
+    
     public static readonly int Hash_MovementValue = Animator.StringToHash("MovementValue");
     public static readonly int Hash_GroundValue = Animator.StringToHash("isGrounded");
-    private static readonly int Hash_JumpValue = Animator.StringToHash("JumpValue");
-    private static readonly int Hash_Actionid = Animator.StringToHash("ActionId");
-    private static readonly int Hash_ActionTrigger = Animator.StringToHash("ActionTrigger");
-    private static readonly int Hash_HoldingMouse = Animator.StringToHash("HoldingMouse");
 
     public enum PlayerMovementState { Idle, Move } 
     public enum PlayerActionState {Default, Attack, Attack2, Interact, Roll, Jump, Climb, Dash}
@@ -62,7 +59,7 @@ public class PlayerController : MonoBehaviour
     
     public OneWayChecker _oneway;
 
-    
+    private PlayerInteractions _playerInteractions;
     
     private float _movementSpeed;
 
@@ -85,6 +82,7 @@ public class PlayerController : MonoBehaviour
     private InputAction _attackAction; //zum angreifen (Mouseclick)
     private InputAction _secondAttackAction; //zum double attack
     private InputAction _dashAction; //dashen
+    private InputAction _interactAction; //interagieren mit Interactables
 
     #endregion
 
@@ -98,6 +96,7 @@ public class PlayerController : MonoBehaviour
         _rb = gameObject.GetComponent<Rigidbody2D>();
         _sr = GetComponent<SpriteRenderer>();
         anim = GetComponent<Animator>();
+        _playerInteractions = GetComponent<PlayerInteractions>();
 
         _oneway = GetComponentInChildren<OneWayChecker>();
 
@@ -119,7 +118,6 @@ public class PlayerController : MonoBehaviour
         }
     }
     
-
     private void OnEnable()
     {
         _inputActions.Enable();
@@ -134,6 +132,8 @@ public class PlayerController : MonoBehaviour
         _secondAttackAction.started += SecondAttack;
         
         _dashAction.performed += Dash;
+
+        _interactAction.performed += Interact;
 
     }
 
@@ -160,6 +160,8 @@ public class PlayerController : MonoBehaviour
         _secondAttackAction.canceled -= SecondAttack;
         
         _dashAction.performed -= Dash;
+        
+        _interactAction.performed -= Interact;
     }
 
     #endregion
@@ -288,7 +290,18 @@ private void SetActionToDefault()
             AnimationSetActionId(3);
         }
     }
-    
+
+    private void Interact(InputAction.CallbackContext ctx)
+    {
+        if(_interactAction == null)
+        {
+            Debug.LogWarning("No PlayerInteraction component to the player attached");
+            return;
+        }
+        
+        _playerInteractions.TryInteract();
+    }
+
     private void DealDamage()
     {
         Collider2D[] enemy = Physics2D.OverlapCircleAll(attackArea.transform.position,radius, enemies);
@@ -329,6 +342,7 @@ private void SetActionToDefault()
             _attackAction = _inputActions.Player.Attack;
             _secondAttackAction = _inputActions.Player.SecondAttack;
             _dashAction = _inputActions.Player.Dash;
+            _interactAction = _inputActions.Player.Interact;
         }
         private void SetDirection(PlayerDirection newPlayerDirectionState)
         {

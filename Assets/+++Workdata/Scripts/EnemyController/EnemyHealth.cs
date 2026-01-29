@@ -4,35 +4,44 @@ using System;
 
 public class EnemyHealth : MonoBehaviour
 {
-    public float health;
-    public float maxHealth;
-    public Image healthBar;
+    #region Public Variables
+
+    [SerializeField] private int enemyMaxHealth;
+    public int currentHealth;
+
+    #endregion
+
+    #region Private Variables
+
+    private EnemyBehaviour _behaviour;
+    private Collider2D _collider;
     private Rigidbody2D _rb;
+    private EnemyPatrolMovement enemyPatrol;
 
-    void Start()
+    #endregion
+
+    private void Awake()
     {
-        health = maxHealth;
-        
+        currentHealth = enemyMaxHealth;
+        _behaviour = GetComponent<EnemyBehaviour>();
+        _collider = GetComponent<Collider2D>();
         _rb = GetComponent<Rigidbody2D>();
+        enemyPatrol = GetComponent<EnemyPatrolMovement>();
     }
 
-    void Update()
+    public void TakeDamage(int damage)
     {
-        healthBar.fillAmount = Mathf.Clamp(health / maxHealth, 0 ,1);
+        currentHealth -= damage;
+        _behaviour.EnemyHitEvent();
 
-        if (healthBar.fillAmount <= 0)
+        if (currentHealth < 1)
         {
-            Destroy(gameObject);
-        }
-    }
-
-    public void TakeDamage(float damageAmount)
-    {
-        health -= damageAmount;
-
-        if (health <= 0)
-        {
-            Destroy(gameObject);
+            _collider.enabled = false;
+            _rb.bodyType = RigidbodyType2D.Kinematic;
+            enemyPatrol.SetMovementState(0);
+            enemyPatrol.SetActionState(2);
+            enemyPatrol.enabled = false;
+            _behaviour.EnemyDeathEvent();
         }
     }
 }

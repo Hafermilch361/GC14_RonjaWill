@@ -257,11 +257,8 @@ private void SetActionToDefault()
             AnimationSetActionId(11);
             _isHoldingMouse = true;
             anim.SetBool("HoldingMouse", true);
-            DealDamage();
             
     }
-    
-
     private void AttackReleased(InputAction.CallbackContext ctx)
     {
         anim.SetBool("HoldingMouse", false);
@@ -301,23 +298,11 @@ private void SetActionToDefault()
         
         _playerInteractions.TryInteract();
     }
-
-    private void DealDamage()
-    {
-        Collider2D[] enemy = Physics2D.OverlapCircleAll(attackArea.transform.position,radius, enemies);
-        foreach (Collider2D enemyGameobject in enemy)
-        {
-            Debug.Log("Hit enemy");
-            enemyGameobject.GetComponent<EnemyHealth>().health -= damage;
-        }
-    }
-
-
+    
     private void SetStateToDefault()
     {
         playerActionState = PlayerActionState.Default;
     }
-
     #endregion
 
     #region Gizmos

@@ -7,7 +7,6 @@ using UnityEngine.InputSystem;
 
 public class PlayerController : MonoBehaviour
 {
-    
     public static readonly int Hash_MovementValue = Animator.StringToHash("MovementValue");
     public static readonly int Hash_GroundValue = Animator.StringToHash("isGrounded");
 
@@ -29,8 +28,10 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float walkingSpeed = 6f;
     [SerializeField] private float runSpeed = 8f;
     [SerializeField] private float jumpPower = 4f;
-    private float _dashforce = 5f;
-    public float _dashSpeed;
+    
+    [SerializeField] private float dashForce = 15f;
+    [SerializeField] private float dashDuration = 0.2f;
+    [SerializeField] private float dashCooldown = 0.5f;
 
     [Header("GroundCheck")] [SerializeField]
     private Vector2 boxSize;
@@ -67,12 +68,15 @@ public class PlayerController : MonoBehaviour
     private bool isJumping;
     private bool canJump;
     
-    private bool canDash;
-    private bool isDashing;
+    private bool canDash = true;
+    private bool isDashing = false;
+    private float dashTimer = 0f;
     
     private bool isFacingRight = true; //angeben wohin unser Player "normal" schaut
     private bool MouseClicked;
     private bool _isHoldingMouse;
+    
+#endregion
 
     #region Input Variables
 
@@ -83,8 +87,6 @@ public class PlayerController : MonoBehaviour
     private InputAction _secondAttackAction; //zum double attack
     private InputAction _dashAction; //dashen
     private InputAction _interactAction; //interagieren mit Interactables
-
-    #endregion
 
     #endregion
 
@@ -136,7 +138,18 @@ public class PlayerController : MonoBehaviour
         _interactAction.performed += Interact;
 
     }
-
+    private void Update()
+    {
+        // Dash Timer
+        if(isDashing)
+        {
+            dashTimer -= Time.deltaTime;
+            if(dashTimer <= 0)
+            {
+                EndDash();
+            }
+        }
+    }
     private void FixedUpdate()
     {
         CheckGround();
@@ -270,22 +283,59 @@ private void SetActionToDefault()
         
             playerActionState = PlayerActionState.Attack2;
             AnimationSetActionId(12);
-        
     }
 
     private void Dash(InputAction.CallbackContext ctx)
     {
-        
-        if (isGrounded && canDash)
-            
+        if (!canDash || isDashing) return;
+
+        anim.SetInteger("ActionID", 3); //gleiche Zahl wie im Animator
+        anim.SetTrigger("ActionTrigger"); //löst die StateMachine aus
+
+        StartCoroutine(PerformDash());
+    }
+
+    private void EndDash()
+    {
+        isDashing = false;
+        canDash = true;
+        AnimationSetActionId(0);
+    }
+
+    private System.Collections.IEnumerator PerformDash()
+    {
+        isDashing = true;
+        canDash = false;
+
+        playerActionState = PlayerActionState.Dash;
+
+        float originalGravity = _rb.gravityScale;
+        _rb.gravityScale = 0; // Optional: kein Fall während Dash
+
+        float direction = transform.rotation.y == 0 ? 1f : -1f;
+
+        float timer = 0f;
+        while (timer < dashDuration)
         {
-            canDash = false;
-            isDashing = true;
-            
-            _rb.AddForce((isFacingRight ? Vector2.right : Vector2.left) * _dashforce, ForceMode2D.Impulse);
-            playerActionState = PlayerActionState.Dash;
-            AnimationSetActionId(3);
+            _rb.linearVelocity = new Vector2(direction * dashForce, 0);
+            timer += Time.deltaTime;
+            yield return null;
         }
+
+        // Stop Movement
+        _rb.linearVelocity = Vector2.zero;
+
+        _rb.gravityScale = originalGravity; 
+
+        isDashing = false;
+
+        // Nachdem Dash vorbei ist, wieder normaler Zustand
+        if (isGrounded)
+            playerActionState = PlayerActionState.Default;
+
+        yield return new WaitForSeconds(dashCooldown);
+
+        canDash = true;
     }
 
     private void Interact(InputAction.CallbackContext ctx)

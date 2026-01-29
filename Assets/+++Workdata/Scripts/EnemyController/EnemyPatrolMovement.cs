@@ -76,6 +76,7 @@ public class EnemyPatrolMovement : MonoBehaviour
             {
                 _enemyAnimation.AnimationAttack();
                 enemyActionState = EnemyActionState.Attack;
+                Invoke("SetActionStateToDefault()",1);
                 return;
             }
             if ((transform.position.x < _chaseTarget.position.x && _facingDirection == -1) ||
@@ -128,14 +129,15 @@ public class EnemyPatrolMovement : MonoBehaviour
         {
             _chaseTarget = null;
         }
+   
 
 
-/*
-        public void SetActionStateToDefault()
+
+    void SetActionStateToDefault()
         {
           enemyActionState = EnemyActionState.Default;
         }
- */   }
+  }
 
     #endregion
 

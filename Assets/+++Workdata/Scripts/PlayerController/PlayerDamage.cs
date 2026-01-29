@@ -6,15 +6,6 @@ public class PlayerDamage : MonoBehaviour
 {
     public PlayerHealth pHealth;
     public float damage;
-    void Start()
-    {
-
-    }
-
-    void Update()
-    {
-
-    }
 
     private void OnTriggerEnter2D(Collider2D other)
     {

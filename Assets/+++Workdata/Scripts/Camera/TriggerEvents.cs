@@ -1,3 +1,4 @@
+using System;
 using Unity.Cinemachine;
 using UnityEngine;
 using UnityEngine.Events;
@@ -6,24 +7,43 @@ public class TriggerEvents : MonoBehaviour
 {
     public UnityEvent onTriggerEnter;
     public UnityEvent onTriggerExit;
- 
+    
+    private CinemachineCamera cm;
     public string targetTag;
+    public AudioSource _audio;
 
-    private void OnTriggerEnter2D(Collider2D other)
+    public void Start()
     {
-        if (other.CompareTag(targetTag))
+        cm = gameObject.GetComponent<CinemachineCamera>();
+    }
+
+    public void OnTriggerEnter2D(Collider2D other)
+    {
+        if (other.CompareTag("Player"))
         {
-            onTriggerEnter?.Invoke();
-            gameObject.GetComponent<CinemachineCamera>().Priority = 10;
+            cm.Priority.Value = 5;
+            _audio.Play();
         }
+        
+        
+        /*if (other.CompareTag(targetTag))
+        {
+        onTriggerEnter?.Invoke();
+        cm.Priority = 10;
+          }*/
     }
  
-    private void OnTriggerExit2D(Collider2D other)
+    public void OnTriggerExit2D(Collider2D other)
     {
-        if (other.CompareTag(targetTag))
+        if (other.CompareTag("Player"))
+        {
+            cm.Priority.Value = 0;
+            _audio.Stop();
+        }
+        /*if (other.CompareTag(targetTag))
         {
             onTriggerExit?.Invoke();
-            gameObject.GetComponent<CinemachineCamera>().Priority = 0;
-        }
+            cm.Priority = 0;
+        }*/
     }
 }

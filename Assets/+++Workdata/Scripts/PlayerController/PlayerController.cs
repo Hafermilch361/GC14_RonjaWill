@@ -30,8 +30,8 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float jumpPower = 4f;
     
     [SerializeField] private float dashForce = 15f;
-    [SerializeField] private float dashDuration = 0.2f;
-    [SerializeField] private float dashCooldown = 0.5f;
+    [SerializeField] private float dashDuration = 1f;
+    [SerializeField] private float dashCooldown = 1f;
 
     [Header("GroundCheck")] [SerializeField]
     private Vector2 boxSize;
@@ -211,7 +211,6 @@ public class PlayerController : MonoBehaviour
     }
 private void AnimEvent_EndJump()
     {
-        
         canJump = true;
     }
 
@@ -256,8 +255,10 @@ private void SetActionToDefault()
     {
         if (isGrounded && canJump)
         {
+            isJumping = true;
             canJump = false;
             _rb.AddForce(Vector2.up * jumpPower, ForceMode2D.Impulse);
+            
         }
 
     }

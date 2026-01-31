@@ -15,8 +15,6 @@ public class EnemyAggroBehaviour : MonoBehaviour
         {
             _enemyPatrolMovement.SetMovementStateToChase(other.transform);
         }
-        
-        
     }
 
     private void OnTriggerExit2D(Collider2D other)

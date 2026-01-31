@@ -6,16 +6,12 @@ public class EnemyPatrolMovement : MonoBehaviour
 {
     public enum EnemyMovementState
     {
-        Idle,
-        Movement,
-        Chase
+        Idle, Movement, Chase
     }
 
     public enum EnemyActionState
     {
-        Default,
-        Attack,
-        Dead
+        Default, Attack, Dead
     }
 
     #region Public Variables
@@ -26,9 +22,10 @@ public class EnemyPatrolMovement : MonoBehaviour
 
     [Header("Movement")] 
     [SerializeField] private bool _isFacingRight = true;
-    [SerializeField] private float _moveSpeed = 4f;
+    [SerializeField] private float _moveSpeed;
 
-    [Header("Attack")] [SerializeField] private float attackDistance = 1;
+    [Header("Attack")]
+    [SerializeField] private float attackDistance = 1;
 
     #endregion
 
@@ -65,7 +62,7 @@ public class EnemyPatrolMovement : MonoBehaviour
         if (enemyActionState != EnemyActionState.Default) return;
 
 
-        if (enemyMovementState == EnemyMovementState.Chase) //Chase Verhalten
+        if (enemyMovementState == EnemyMovementState.Chase) //geht in Chase
         {
             if (_chaseTarget == null)
             {
@@ -76,7 +73,7 @@ public class EnemyPatrolMovement : MonoBehaviour
             {
                 _enemyAnimation.AnimationAttack();
                 enemyActionState = EnemyActionState.Attack;
-                Invoke("SetActionStateToDefault()",1);
+               // Invoke("SetActionStateToDefault()",1);
                 return;
             }
             if ((transform.position.x < _chaseTarget.position.x && _facingDirection == -1) ||
@@ -84,22 +81,19 @@ public class EnemyPatrolMovement : MonoBehaviour
             {
                 ChangeDirection();
             }
-    
         }
-        
-        
         _rb.linearVelocityX = _moveSpeed * _facingDirection;
     }
-    private void MovementForAnim() 
+    /*private void MovementForAnim() 
     {
         float speed = Mathf.Abs(_rb.linearVelocity.x);
         _anim.SetFloat("MovementValue", speed > 0.01f ? 1f : 0f);
-    }
+    }*/
 
     private void LateUpdate()
     {
         UpdateAnimator();
-        MovementForAnim();
+        //MovementForAnim();
     }
 
     #endregion
@@ -116,29 +110,30 @@ public class EnemyPatrolMovement : MonoBehaviour
     {
         enemyMovementState = (EnemyMovementState)state;
         if (enemyMovementState != EnemyMovementState.Chase)
-        {
             _chaseTarget = null;
-        }
-
     }
 
     public void SetActionState(int state)
     {
         enemyActionState = (EnemyActionState)state;
-        if (enemyMovementState != EnemyMovementState.Chase)
+        /*if (enemyMovementState != EnemyMovementState.Chase)
         {
             _chaseTarget = null;
-        }
-   
+        }*/
 
 
-
-    void SetActionStateToDefault()
+        
+        void SetActionStateToDefault()
         {
           enemyActionState = EnemyActionState.Default;
         }
   }
-
+  public void DeathEvent()
+    {
+        SetMovementState(0);
+        SetActionState(2);
+        
+    }
     #endregion
 
 

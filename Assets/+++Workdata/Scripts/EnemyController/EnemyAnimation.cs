@@ -8,14 +8,15 @@ public class EnemyAnimation : MonoBehaviour
     private static readonly int HashisDead = Animator.StringToHash("isDead");
 
     private Animator _animator;
+ private EnemyPatrolMovement _enemyPatrolMovement;
 
+ private void Awake()
+ {
+     _animator = GetComponent<Animator>();
+     _enemyPatrolMovement = GetComponentInParent<EnemyPatrolMovement>();
+ }
 
-    private void Awake()
-    {
-        _animator = GetComponent<Animator>();
-    }
-
-    public void AnimationEnemyDeath()
+ public void AnimationEnemyDeath()
     {
         _animator.SetBool(HashisDead, true);
         AnimationSetActionID(10);
@@ -40,6 +41,10 @@ public class EnemyAnimation : MonoBehaviour
     {
         _animator.SetTrigger(HashActionTrigger);
         _animator.SetInteger(HashActionId, number);
+    }
+public void AnimationActionValue()
+    {
+        _enemyPatrolMovement.SetActionState(0);
     }
 
     public void EnemyDeath()

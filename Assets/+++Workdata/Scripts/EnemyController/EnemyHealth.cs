@@ -38,14 +38,13 @@ public class EnemyHealth : MonoBehaviour
         Debug.Log("DAMAGE");
         health -= damage;
         
-        if (healthBar.fillAmount <= 0) //wenn keien health mehr
+        if (health <= 0) //wenn keien health mehr
             {
+                _collider.enabled = false;
+                _rb.bodyType = RigidbodyType2D.Kinematic;
                 _enemyAnimation.AnimationEnemyDeath();
-                enemyPatrol.SetMovementState(0);
-              enemyPatrol.SetActionState(2);
-            _collider.enabled = false;
-            _rb.bodyType = RigidbodyType2D.Kinematic;
-           
+                enemyPatrol.SetActionState(2);
+            enemyPatrol.SetMovementState(0);
             enemyPatrol.enabled = false; //enemy funktionen alle "ausschalten"
             }
     }

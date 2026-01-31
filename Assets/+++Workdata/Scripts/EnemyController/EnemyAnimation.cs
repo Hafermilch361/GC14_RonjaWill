@@ -5,6 +5,7 @@ public class EnemyAnimation : MonoBehaviour
     private static readonly int HashMovementValue = Animator.StringToHash("MovementValue");
     private static readonly int HashActionTrigger = Animator.StringToHash("ActionTrigger");
     private static readonly int HashActionId = Animator.StringToHash("ActionId");
+    private static readonly int HashisDead = Animator.StringToHash("isDead");
 
     private Animator _animator;
 
@@ -16,7 +17,9 @@ public class EnemyAnimation : MonoBehaviour
 
     public void AnimationEnemyDeath()
     {
+        _animator.SetBool(HashisDead, true);
         AnimationSetActionID(10);
+        
     }
 
     public void AnimationEnemyHit()
@@ -37,5 +40,10 @@ public class EnemyAnimation : MonoBehaviour
     {
         _animator.SetTrigger(HashActionTrigger);
         _animator.SetInteger(HashActionId, number);
+    }
+
+    public void EnemyDeath()
+    {
+        Destroy(gameObject);
     }
 }

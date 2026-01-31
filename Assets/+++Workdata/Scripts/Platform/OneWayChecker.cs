@@ -28,7 +28,7 @@ public class OneWayChecker : MonoBehaviour
         if (!_oneWayPlatform) return;
 
         _oneWayPlatform.enabled = false;
-        _oneWayPlatform.GetComponent<OneWayPlatformBehaviour>().EnableCollider();
+       // _oneWayPlatform.GetComponent<OneWayPlatformBehaviour>().EnableCollider();
     }
     
 }

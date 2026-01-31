@@ -11,11 +11,6 @@ public class EnemyBehaviour : MonoBehaviour
     {
         _animation = GetComponent<EnemyAnimation>();
     }
-    public void EnemyDeathEvent()
-    {
-        _animation.AnimationEnemyDeath();
-        
-    }
 
     public void EnemyHitEvent()
     {

@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PlayerDamage : MonoBehaviour
+public class DamageZone : MonoBehaviour
 {
     public PlayerHealth pHealth;
     public float damage;

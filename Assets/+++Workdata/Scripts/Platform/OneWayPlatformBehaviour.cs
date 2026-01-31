@@ -1,18 +1,44 @@
+using System;
 using UnityEngine;
 
 public class OneWayPlatformBehaviour : MonoBehaviour
 {
-   private Collider2D _collider2D;
-public float enableTimer = 1;
+    private PlatformEffector2D _platformEffector;
+    public float enableTimer = 1;
 
-public void EnableCollider()
-{
-   Invoke("EnableOneWayCollider", enableTimer);
+
+    private void Awake()
+    {
+        _platformEffector = GetComponent<PlatformEffector2D>();
+    }
+
+    private void OnTriggerEnter2D(Collider2D other)
+    {
+        if (other.CompareTag("Player"))
+        {
+            other.GetComponent<PlayerPlatformHandler>()
+                .SetOneWayEffector(this);
+        }
+    }
+
+    private void OnTriggerExit2D(Collider2D other)
+    {
+        if (other.CompareTag("Player"))
+        {
+            other.GetComponent<PlayerPlatformHandler>()
+                .SetOneWayEffector(null);
+        }
+    }
+
+    public void DisableEffector()
+    {
+        _platformEffector.surfaceArc = 0;
+        Invoke("EnableEffector", enableTimer);
+    }
+
+
+    private void EnableEffector()
+    {
+        _platformEffector.surfaceArc = 180;
+    }
 }
-
-private void EnableOneWayCollider()
-{
-   _collider2D.enabled = true;
-}
-
-} //auf oneway platform packen!!!

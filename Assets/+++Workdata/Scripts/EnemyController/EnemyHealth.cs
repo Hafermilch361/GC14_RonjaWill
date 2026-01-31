@@ -4,44 +4,49 @@ using System;
 
 public class EnemyHealth : MonoBehaviour
 {
-    #region Public Variables
-
-    [SerializeField] private int enemyMaxHealth;
-    public int currentHealth;
-
-    #endregion
-
-    #region Private Variables
+    #region Variables
+    public float enemyMaxHealth;
+    public float health;
+    public Image healthBar;
 
     private EnemyBehaviour _behaviour;
     private Collider2D _collider;
     private Rigidbody2D _rb;
     private EnemyPatrolMovement enemyPatrol;
+    private EnemyAnimation _enemyAnimation;
+    
 
     #endregion
 
     private void Awake()
     {
-        currentHealth = enemyMaxHealth;
+        health = enemyMaxHealth;
         _behaviour = GetComponent<EnemyBehaviour>();
         _collider = GetComponent<Collider2D>();
         _rb = GetComponent<Rigidbody2D>();
         enemyPatrol = GetComponent<EnemyPatrolMovement>();
+        _enemyAnimation = GetComponent<EnemyAnimation>();
+    }
+    
+    void Update()
+    {
+        healthBar.fillAmount = Mathf.Clamp(health / enemyMaxHealth, 0 ,1);
     }
 
-    public void TakeDamage(int damage)
+    public void SetDamage(int damage)
     {
-        currentHealth -= damage;
-        _behaviour.EnemyHitEvent();
-
-        if (currentHealth < 1)
-        {
+        Debug.Log("DAMAGE");
+        health -= damage;
+        
+        if (healthBar.fillAmount <= 0) //wenn keien health mehr
+            {
+                _enemyAnimation.AnimationEnemyDeath();
+                enemyPatrol.SetMovementState(0);
+              enemyPatrol.SetActionState(2);
             _collider.enabled = false;
             _rb.bodyType = RigidbodyType2D.Kinematic;
-            enemyPatrol.SetMovementState(0);
-            enemyPatrol.SetActionState(2);
-            enemyPatrol.enabled = false;
-            _behaviour.EnemyDeathEvent();
-        }
+           
+            enemyPatrol.enabled = false; //enemy funktionen alle "ausschalten"
+            }
     }
 }

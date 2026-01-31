@@ -29,9 +29,9 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float runSpeed = 8f;
     [SerializeField] private float jumpPower = 4f;
     
-    [SerializeField] private float dashForce = 15f;
-    [SerializeField] private float dashDuration = 1f;
-    [SerializeField] private float dashCooldown = 1f;
+    [SerializeField] private float dashForce = 18f;
+    [SerializeField] private float dashDuration = 0.5f;
+    [SerializeField] private float dashCooldown = 0.2f;
 
     [Header("GroundCheck")] [SerializeField]
     private Vector2 boxSize;
@@ -59,6 +59,7 @@ public class PlayerController : MonoBehaviour
     public float damage;
     
     public OneWayChecker _oneway;
+    private PlayerPlatformHandler _playerPlatformHandler;
 
     private PlayerInteractions _playerInteractions;
     
@@ -101,6 +102,7 @@ public class PlayerController : MonoBehaviour
         _playerInteractions = GetComponent<PlayerInteractions>();
 
         _oneway = GetComponentInChildren<OneWayChecker>();
+        _playerPlatformHandler = GetComponent<PlayerPlatformHandler>();
 
         _movementSpeed = walkingSpeed;
         canJump = true;
@@ -138,25 +140,18 @@ public class PlayerController : MonoBehaviour
         _interactAction.performed += Interact;
 
     }
-    private void Update()
-    {
-        // Dash Timer
-        if(isDashing)
-        {
-            dashTimer -= Time.deltaTime;
-            if(dashTimer <= 0)
-            {
-                EndDash();
-            }
-        }
-    }
+
     private void FixedUpdate()
     {
         CheckGround();
-        if(playerActionState != PlayerActionState.Dash)
-        _rb.linearVelocityX = _moveInput.x * walkingSpeed;
+        
+        if (!isDashing)
+        {
+            _rb.linearVelocityX = _moveInput.x * walkingSpeed;
+            playerActionState = PlayerActionState.Default;
+        }
 
-        UpdateAnimator(); //in Animations definiert, hier, damit es jeden Frame aufgerufen wird
+    UpdateAnimator(); //in Animations definiert, hier, damit es jeden Frame aufgerufen wird
     }
     
     private void OnDisable()
@@ -195,7 +190,7 @@ public class PlayerController : MonoBehaviour
 
     #region Animation Methods
 
-    private void AnimationSetActionId(int id)
+    private void AnimationSetActionid(int id)
     {
         anim.SetTrigger("ActionTrigger");
         anim.SetInteger("Actionid", id);
@@ -219,10 +214,6 @@ private void AnimEvent_EndJump()
      print("Player has dashed");
         isDashing =  false;
         canDash = true;
-        SetActionToDefault();
-    }
-private void SetActionToDefault()
-    {
         playerActionState = PlayerActionState.Default;
     }
     #endregion
@@ -246,7 +237,7 @@ private void SetActionToDefault()
 
         if (_moveInput.y < 0)
         {
-            _oneway.DisableOneWayCollider();
+            _playerPlatformHandler.TryDisableOneWayEffector();
         }
 
     }
@@ -258,9 +249,7 @@ private void SetActionToDefault()
             isJumping = true;
             canJump = false;
             _rb.AddForce(Vector2.up * jumpPower, ForceMode2D.Impulse);
-            
         }
-
     }
 
     private void Attack(InputAction.CallbackContext ctx)
@@ -268,11 +257,11 @@ private void SetActionToDefault()
         if (playerActionState == PlayerActionState.Attack) return;
         
             playerActionState = PlayerActionState.Attack;
-            AnimationSetActionId(11);
+            AnimationSetActionid(11);
             _isHoldingMouse = true;
             anim.SetBool("HoldingMouse", true);
-            
     }
+    
     private void AttackReleased(InputAction.CallbackContext ctx)
     {
         anim.SetBool("HoldingMouse", false);
@@ -283,35 +272,35 @@ private void SetActionToDefault()
         if (playerActionState == PlayerActionState.Attack2) return;
         
             playerActionState = PlayerActionState.Attack2;
-            AnimationSetActionId(12);
+            AnimationSetActionid(12);
     }
 
     private void Dash(InputAction.CallbackContext ctx)
     {
-        if (!canDash || isDashing) return;
+        if (playerActionState == PlayerActionState.Dash) return;
+        
+        if (!isGrounded || !canDash) return;
+        canDash = false;
+        isDashing = true;
+        dashTimer = dashDuration;
+        
+        _rb.linearVelocity = Vector2.zero;
+        _rb.AddForce((isFacingRight ? Vector2.right : Vector2.left) * dashForce, ForceMode2D.Impulse);
 
-        anim.SetInteger("ActionID", 3); //gleiche Zahl wie im Animator
+        anim.SetInteger("Actionid", 3); //gleiche Zahl wie im Animator
         anim.SetTrigger("ActionTrigger"); //löst die StateMachine aus
 
         StartCoroutine(PerformDash());
     }
+    
 
-    private void EndDash()
+    private IEnumerator PerformDash()
     {
-        isDashing = false;
-        canDash = true;
-        AnimationSetActionId(0);
-    }
-
-    private System.Collections.IEnumerator PerformDash()
-    {
-        isDashing = true;
-        canDash = false;
-
-        playerActionState = PlayerActionState.Dash;
-
+       isDashing = true;
+        canDash = false; 
+        playerActionState  = PlayerActionState.Dash;
         float originalGravity = _rb.gravityScale;
-        _rb.gravityScale = 0; // Optional: kein Fall während Dash
+        _rb.gravityScale = 0; // Nicht fallen während Dash
 
         float direction = transform.rotation.y == 0 ? 1f : -1f;
 
@@ -323,20 +312,18 @@ private void SetActionToDefault()
             yield return null;
         }
 
-        // Stop Movement
-        _rb.linearVelocity = Vector2.zero;
-
+        _rb.linearVelocity = Vector2.zero; //Bewegung anhalten
         _rb.gravityScale = originalGravity; 
 
         isDashing = false;
 
-        // Nachdem Dash vorbei ist, wieder normaler Zustand
-        if (isGrounded)
-            playerActionState = PlayerActionState.Default;
+        if (isGrounded) // Nach Dash wieder in den Default, mit andere Aktionen ausgeführt werden können
+        {   playerActionState = PlayerActionState.Default;}
 
-        yield return new WaitForSeconds(dashCooldown);
-
-        canDash = true;
+       yield return new WaitForSeconds(dashCooldown);
+       canDash = true;
+       
+       
     }
 
     private void Interact(InputAction.CallbackContext ctx)
@@ -357,12 +344,10 @@ private void SetActionToDefault()
     #endregion
 
     #region Gizmos
-
-        void OnDrawGizmos()
+    void OnDrawGizmos()
         {
             Gizmos.color = isGrounded ? Color.green : Color.red;
             Gizmos.DrawWireCube(boxOffset + (Vector2)transform.position, boxSize);
-            
             Gizmos.DrawWireSphere(attackArea.transform.position, radius);
         }
 

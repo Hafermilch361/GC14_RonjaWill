@@ -7,6 +7,7 @@ public class PlayerHealth : MonoBehaviour
     public float health;
     public float maxHealth;
     public Image healthBar;
+    public GameObject _ui;
 
     void Start()
     {
@@ -21,6 +22,7 @@ public class PlayerHealth : MonoBehaviour
         if (healthBar.fillAmount <= 0)
         {
             Destroy(gameObject);
+            Destroy(_ui);
         }
     }
 

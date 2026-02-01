@@ -40,12 +40,17 @@ public class EnemyHealth : MonoBehaviour
         
         if (health <= 0) //wenn keien health mehr
             {
+                enemyPatrol.SetActionState(3);
+                enemyPatrol.SetMovementState(0);
+                
                 _collider.enabled = false;
                 _rb.bodyType = RigidbodyType2D.Kinematic;
-                _enemyAnimation.AnimationEnemyDeath();
-                enemyPatrol.SetActionState(2);
-            enemyPatrol.SetMovementState(0);
-            enemyPatrol.enabled = false; //enemy funktionen alle "ausschalten"
+
+                enemyPatrol.enabled = false; //enemy funktionen alle "ausschalten"
+            
+            _enemyAnimation.AnimationEnemyDeath();
+            enemyPatrol.DeathEvent();
+            
             }
     }
 }

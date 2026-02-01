@@ -9,5 +9,10 @@ public class PlayerAttackTrigger : MonoBehaviour
         {
             other.gameObject.GetComponent<EnemyHealth>().SetDamage(damage);
         }
+        
+        if (other.CompareTag("Boss"))
+        {
+            other.gameObject.GetComponent<BossBehaviour>().SetDamage(damage);
+        }
     }
 }

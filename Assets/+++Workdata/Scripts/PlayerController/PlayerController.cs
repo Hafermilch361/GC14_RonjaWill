@@ -9,6 +9,7 @@ public class PlayerController : MonoBehaviour
 {
     public static readonly int Hash_MovementValue = Animator.StringToHash("MovementValue");
     public static readonly int Hash_GroundValue = Animator.StringToHash("isGrounded");
+    public static readonly int Hash_Jump = Animator.StringToHash("isJumping");
 
     public enum PlayerMovementState { Idle, Move } 
     public enum PlayerActionState {Default, Attack, Attack2, Interact, Roll, Jump, Climb, Dash}
@@ -200,9 +201,7 @@ public class PlayerController : MonoBehaviour
     {
         anim.SetFloat(Hash_MovementValue,
             Mathf.Abs(_rb.linearVelocity.x)); //oder: anim.SetFloat("MovementValue", _rb.linearVelocityX)
-        anim.SetBool(Hash_GroundValue,
-            IsGrounded); //Mathf.Abs= dass passiert, egal welche Richtung (sonst nur nach rechts)
-
+        anim.SetBool(Hash_GroundValue, IsGrounded); //Mathf.Abs= dass passiert, egal welche Richtung (sonst nur nach rechts)
     }
 private void AnimEvent_EndJump()
     {
@@ -244,11 +243,17 @@ private void AnimEvent_EndJump()
 
     private void Jump(InputAction.CallbackContext ctx)
     {
+        if (playerActionState == PlayerActionState.Jump) return;
+        playerActionState = PlayerActionState.Jump;
+            
         if (isGrounded && canJump)
         {
+            /*anim.SetBool("isJumping", true);
             isJumping = true;
             canJump = false;
+            */
             _rb.AddForce(Vector2.up * jumpPower, ForceMode2D.Impulse);
+            anim.SetTrigger(Hash_Jump);
         }
     }
 

@@ -73,7 +73,7 @@ public class EnemyPatrolMovement : MonoBehaviour
             {
                 _enemyAnimation.AnimationAttack();
                 enemyActionState = EnemyActionState.Attack;
-               // Invoke("SetActionStateToDefault()",1);
+               //Invoke("SetActionStateToDefault()",1);
                 return;
             }
             if ((transform.position.x < _chaseTarget.position.x && _facingDirection == -1) ||
@@ -84,16 +84,16 @@ public class EnemyPatrolMovement : MonoBehaviour
         }
         _rb.linearVelocityX = _moveSpeed * _facingDirection;
     }
-    /*private void MovementForAnim() 
+    private void MovementForAnim() 
     {
         float speed = Mathf.Abs(_rb.linearVelocity.x);
         _anim.SetFloat("MovementValue", speed > 0.01f ? 1f : 0f);
-    }*/
+    }
 
     private void LateUpdate()
     {
         UpdateAnimator();
-        //MovementForAnim();
+        MovementForAnim();
     }
 
     #endregion
@@ -120,18 +120,15 @@ public class EnemyPatrolMovement : MonoBehaviour
         {
             _chaseTarget = null;
         }*/
-
-
-        
-        void SetActionStateToDefault()
-        {
-          enemyActionState = EnemyActionState.Default;
-        }
-  }
+    }
+    void SetActionStateToDefault()
+           {
+             enemyActionState = EnemyActionState.Default;
+           }
   public void DeathEvent()
     {
         SetMovementState(0);
-        SetActionState(2);
+        SetActionState(3);
         
     }
     #endregion

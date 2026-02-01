@@ -17,6 +17,7 @@ public class PlayerController : MonoBehaviour
     public PlayerMovementState playerMovementState;
     public PlayerActionState playerActionState;
     public PlayerDirection playerDirection;
+    public PauseMenu_Manager _pauseMenuManager;
 
     public Transform attackArea;
     
@@ -76,6 +77,7 @@ public class PlayerController : MonoBehaviour
     private bool isFacingRight = true; //angeben wohin unser Player "normal" schaut
     private bool MouseClicked;
     private bool _isHoldingMouse;
+    private bool _isPaused;
     
 #endregion
 
@@ -88,6 +90,7 @@ public class PlayerController : MonoBehaviour
     private InputAction _secondAttackAction; //zum double attack
     private InputAction _dashAction; //dashen
     private InputAction _interactAction; //interagieren mit Interactables
+    private InputAction _pauseAction;
 
     #endregion
 
@@ -140,7 +143,7 @@ public class PlayerController : MonoBehaviour
         _interactAction.performed += Interact;
 
     }
-
+    
     private void FixedUpdate()
     {
         CheckGround();
@@ -337,6 +340,7 @@ private void AnimEvent_EndJump()
         _playerInteractions.TryInteract();
     }
     
+
     private void SetStateToDefault()
     {
         playerActionState = PlayerActionState.Default;

@@ -8,6 +8,9 @@ public class Interactable : MonoBehaviour
     public UnityEvent onSelected;
     public UnityEvent onDeselected;
 
+    private PlayerHealth player;
+    public float healAmount;
+    
     public bool reusable;
     public bool destroyAfterUse;
 
@@ -21,4 +24,9 @@ public class Interactable : MonoBehaviour
         if(destroyAfterUse)
             Destroy(gameObject);
     }
+
+   /* public void Healing(Collider2D other)
+    {
+        other.gameObject.GetComponent<PlayerHealth>().health += healAmount;
+    }*/
 }
